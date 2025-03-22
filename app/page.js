@@ -22,9 +22,9 @@ const ChatContainer = styled(Box)(({ theme }) => ({
   position: "relative",
   overflow: "hidden",
   [theme.breakpoints.down("sm")]: {
-    height: "auto",
-    minHeight: "100vh",
-    padding: "16px",
+    height: "100vh",
+    padding: 0,
+    margin: 0,
   },
 }));
 
@@ -96,34 +96,40 @@ const GlowingOrb = styled("div")(({ color }) => ({
 
 const ChatBox = styled(Stack)(({ theme }) => ({
   width: "800px",
-  maxWidth: "90%",
+  maxWidth: "100%",
   height: "600px",
   background: theme.palette.mode === "dark"
-    ? "rgba(28, 37, 38, 0.9)"
-    : "rgba(255, 255, 255, 0.1)",
+    ? "linear-gradient(135deg, #263238 0%, #37474F 100%)"
+    : "linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)",
   backdropFilter: "blur(10px)",
   borderRadius: "16px",
   border: "1px solid rgba(255, 255, 255, 0.2)",
-  boxShadow: "0 5px 15px rgba(0, 0, 0, 0.05)", // Reduced shadow
+  boxShadow: "0 5px 15px rgba(0, 0, 0, 0.05)",
   padding: "24px",
   spacing: "16px",
   position: "relative",
   zIndex: 2,
   [theme.breakpoints.down("md")]: {
-    width: "80%",
+    width: "100%",
     height: "auto",
     minHeight: "80vh",
   },
   [theme.breakpoints.down("sm")]: {
     width: "100%",
+    height: "100vh",
     padding: "16px",
+    borderRadius: 0,
+    border: "none",
+    background: theme.palette.mode === "dark"
+      ? "linear-gradient(135deg, rgba(38, 50, 56, 0.5) 0%, rgba(55, 71, 79, 0.5) 100%)" // 50% transparent in dark mode
+      : "linear-gradient(135deg, rgba(224, 247, 250, 0.5) 0%, rgba(178, 235, 242, 0.5) 100%)", // 50% transparent in light mode
   },
 }));
 
 const ChatBubble = styled(motion.div)(({ role, theme }) => ({
   background: role === "assistant"
     ? theme.palette.mode === "dark"
-      ? "linear-gradient(135deg, #2E3B3E 0%, #5D737E 50%)" // Updated gradient for assistant
+      ? "linear-gradient(135deg, #2E3B3E 0%, #5D737E 50%)"
       : "linear-gradient(135deg, #2E3B3E 0%, #5D737E 100%)"
     : theme.palette.mode === "dark"
       ? "linear-gradient(135deg, #FF7043 0%, #FFAB91 50%)"
@@ -133,13 +139,16 @@ const ChatBubble = styled(motion.div)(({ role, theme }) => ({
   padding: "12px 16px",
   maxWidth: "80%",
   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+  border: role === "assistant"
+    ? "2px solid #81D4FA"
+    : "2px solid #FF8A65",
   fontFamily: "'Inter', sans-serif",
   fontSize: "16px",
   lineHeight: "1.5",
   marginBottom: "8px",
   "@media (max-width: 600px)": {
-    fontSize: "14px",
-    padding: "8px 12px",
+    fontSize: "18px",
+    padding: "10px 14px",
   },
 }));
 
@@ -201,11 +210,11 @@ const TypingIndicator = styled(Box)(({ theme }) => ({
 const QuickReplyContainer = styled(Stack)({
   display: "flex",
   flexDirection: "row",
-  gap: "8px", // Reduced gap for better fit on mobile
+  gap: "8px",
   marginBottom: "8px",
   overflowX: "auto",
   padding: "4px 0",
-  flexWrap: "nowrap", // Ensure single line
+  flexWrap: "nowrap",
   "&::-webkit-scrollbar": {
     height: "6px",
   },
@@ -218,23 +227,52 @@ const QuickReplyContainer = styled(Stack)({
 const QuickReplyChip = styled(Chip)(({ theme }) => ({
   background: theme.palette.mode === "dark"
     ? "linear-gradient(90deg, #4A5E61 0%, #6B7F82 100%)"
-    : "linear-gradient(90deg, #4A5E61 0%, #6B7F82 100%)",
+    : "linear-gradient(90deg, #81D4FA 0%, #4FC3F7 100%)",
   color: theme.palette.text.primary,
   fontWeight: 500,
-  borderRadius: "8px", // Slightly rounded corners
+  borderRadius: "8px",
   padding: "6px 12px",
-  border: "1px solid rgba(74, 94, 97, 0.3)", // Subtle border matching background
+  border: "1px solid rgba(74, 94, 97, 0.3)",
   boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
   transition: "transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease",
   "&:hover": {
     transform: "translateY(-2px)",
-    boxShadow: "0 0 15px rgba(107, 127, 130, 0.5)",
-    background: "linear-gradient(90deg, #6B7F82 0%, #4A5E61 100%)",
+    boxShadow: "0 0 15px rgba(129, 212, 250, 0.5)",
+    background: theme.palette.mode === "dark"
+      ? "linear-gradient(90deg, #6B7F82 0%, #4A5E61 100%)"
+      : "linear-gradient(90deg, #4FC3F7 0%, #81D4FA 100%)",
     cursor: "pointer",
   },
   "@media (max-width: 600px)": {
     padding: "4px 8px",
-    fontSize: "12px",
+    fontSize: "14px",
+  },
+}));
+
+const Title = styled(Typography)(({ theme }) => ({
+  fontWeight: 800,
+  color: theme.palette.text.primary,
+  fontFamily: "'Inter', sans-serif",
+  position: "relative",
+  "&:after": {
+    content: '""',
+    position: "absolute",
+    bottom: "-4px",
+    left: 0,
+    width: "100%",
+    height: "3px",
+    background: theme.palette.mode === "dark"
+      ? "linear-gradient(90deg, #81D4FA, #FF8A65)"
+      : "linear-gradient(90deg, #4FC3F7, #FF7043)",
+    animation: "underline 3s ease-in-out infinite",
+  },
+  "@keyframes underline": {
+    "0%": { transform: "scaleX(0)", transformOrigin: "left" },
+    "50%": { transform: "scaleX(1)" },
+    "100%": { transform: "scaleX(0)", transformOrigin: "right" },
+  },
+  "@media (max-width: 600px)": {
+    fontSize: "2rem",
   },
 }));
 
@@ -483,27 +521,73 @@ export default function Home() {
     setIsDarkMode(!isDarkMode);
   };
 
-  const startListening = () => {
-    if (!("SpeechRecognition" in window || "webkitSpeechRecognition" in window)) {
-      alert("Sorry, your browser does not support speech recognition.");
+  const startListening = async () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Sorry, your browser does not support speech recognition. Please try using a different browser like Chrome or Safari.");
       return;
     }
 
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.error("Microphone permission denied:", err);
+      alert("Microphone access was denied. Please allow microphone access in your browser settings and try again.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.onstart = () => setIsListening(true);
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      console.log("Speech recognition started");
+      setIsListening(true);
+    };
+
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
+      console.log("Speech recognition result:", transcript);
       setMessage(transcript);
       setIsListening(false);
     };
+
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      alert("An error occurred during speech recognition. Please try again.");
+      let errorMessage = "An error occurred during speech recognition. Please try again.";
+      switch (event.error) {
+        case "no-speech":
+          errorMessage = "No speech was detected. Please speak clearly and try again.";
+          break;
+        case "audio-capture":
+          errorMessage = "Microphone not found. Please ensure your microphone is connected and try again.";
+          break;
+        case "not-allowed":
+          errorMessage = "Microphone access was denied. Please allow microphone access in your browser settings.";
+          break;
+        case "network":
+          errorMessage = "Network error. Please check your internet connection and try again.";
+          break;
+        default:
+          errorMessage = `Speech recognition error: ${event.error}. Please try again.`;
+      }
+      alert(errorMessage);
     };
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
+
+    recognition.onend = () => {
+      console.log("Speech recognition ended");
+      setIsListening(false);
+    };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      console.error("Error starting speech recognition:", err);
+      setIsListening(false);
+      alert("Failed to start speech recognition. Please try again.");
+    }
   };
 
   return (
@@ -516,19 +600,9 @@ export default function Home() {
         </AnimatedBackground>
         <ChatBox>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 800,
-                color: theme.palette.text.primary,
-                fontFamily: "'Inter', sans-serif",
-                "@media (max-width: 600px)": {
-                  fontSize: "1.5rem",
-                },
-              }}
-            >
+            <Title variant="h4">
               HeadstartAI Chat
-            </Typography>
+            </Title>
             <Stack direction="row" spacing={1}>
               <IconButton onClick={toggleTheme} color="inherit" aria-label="Toggle theme">
                 <Brightness4Icon />
@@ -593,7 +667,7 @@ export default function Home() {
                     width: 32,
                     height: 32,
                     mr: 1,
-                    background: "linear-gradient(135deg, #2E3B3E 0%, #5D737E 100%)", // Match assistant bubble color
+                    background: "linear-gradient(135deg, #2E3B3E 0%, #5D737E 100%)",
                   }}
                   alt="Assistant"
                 />
@@ -631,21 +705,27 @@ export default function Home() {
                 borderRadius: "8px",
                 fontSize: "16px",
                 color: theme.palette.text.primary,
+                paddingRight: "8px",
                 "@media (max-width: 600px)": {
-                  fontSize: "14px",
+                  fontSize: "18px",
                 },
               },
               "& .MuiInputLabel-root": {
                 fontFamily: "'Inter', sans-serif",
                 color: theme.palette.text.primary,
                 "@media (max-width: 600px)": {
-                  fontSize: "14px",
+                  fontSize: "16px",
                 },
               },
               background: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.8)",
               borderRadius: "8px",
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
               marginTop: "8px",
+              width: "100%",
+              "@media (max-width: 600px)": {
+                marginTop: "4px",
+                borderRadius: "0",
+              },
             }}
             InputProps={{
               endAdornment: (
