@@ -5,8 +5,7 @@ export async function POST(req) {
 
   if (!process.env.HF_API_KEY) {
     console.error("❌ ERROR: Missing Hugging Face API Key");
-    console.log("🔍 Environment variables:", process.env);
-    return new Response("Internal Server Error: Missing API Key", { status: 500 });
+    return new Response("Internal Server Error: Missing API Key. Please set HF_API_KEY in environment variables.", { status: 500 });
   }
   console.log("🔑 HF API Key loaded (first 10 chars):", process.env.HF_API_KEY.slice(0, 10) + "...");
 
@@ -22,11 +21,10 @@ export async function POST(req) {
     const userMessages = requestBody.messages;
     console.log("📨 User messages received:", userMessages);
 
-    // Determine if this is the first message
     const isFirstMessage = userMessages.length === 1 && userMessages[0].content.trim().toLowerCase() === "hello";
     const systemPrompt = isFirstMessage
-      ? `You are a customer support assistant for HeadstartAI. Your first response must start with "Welcome to HeadstartAI Customer Support! I'm here to help. It seems like you're asking what I am. I'm an AI language model, designed to assist with answering questions and providing information. How can I help you today?" and contain no other text. For all subsequent responses, provide helpful and professional replies without repeating the greeting.`
-      : `You are a customer support assistant for HeadstartAI. Provide helpful and professional replies without repeating the greeting.`;
+      ? `You are a customer support assistant for HeadstartAI. Your first response must be exactly: "Welcome to HeadstartAI Customer Support! I'm here to help. How can I help you today?" and contain no other text.`
+      : `You are a customer support assistant for HeadstartAI. Provide helpful and professional replies without repeating the greeting. Format your response concisely using short paragraphs or bullet points (using -). Use headings (e.g., "Steps:") where appropriate. Avoid unnecessary repetition and keep the response clear and to the point.`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -45,25 +43,23 @@ export async function POST(req) {
 
     while (attempts < MAX_RETRIES) {
       try {
+        console.log("📡 Attempting API call with model:", "mistralai/Mixtral-8x7B-Instruct-v0.1");
         response = await openai.chat.completions.create({
           messages: messages,
           model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
           stream: true,
           max_tokens: 500,
         });
-        if (!response) {
-          console.error("❌ ERROR: No response from Hugging Face API");
-          return new Response("Internal Server Error: No response", { status: 500 });
-        }
+        console.log("✅ API call successful");
         break;
       } catch (error) {
+        console.error("❌ API call failed:", error.message, "Status:", error.status, "Details:", error);
         if (error.status === 429 && attempts < MAX_RETRIES - 1) {
           console.log(`⏳ Rate limit hit, retrying (${attempts + 1}/${MAX_RETRIES})...`);
           await new Promise((resolve) => setTimeout(resolve, 2000 * (attempts + 1)));
           attempts++;
           continue;
         }
-        console.error("❌ ERROR calling API:", error);
         throw error;
       }
     }
@@ -82,7 +78,6 @@ export async function POST(req) {
               controller.enqueue(encoder.encode(content));
             }
           }
-          // Validate the first response
           if (isFirstMessage && !fullContent.startsWith("Welcome to HeadstartAI Customer Support!")) {
             console.warn("⚠️ First response invalid, falling back to default");
             controller.enqueue(encoder.encode("Welcome to HeadstartAI Customer Support! I'm here to help. How can I help you today?"));
@@ -90,7 +85,8 @@ export async function POST(req) {
           controller.close();
         } catch (err) {
           console.error("❌ ERROR streaming response:", err);
-          controller.error(err);
+          controller.enqueue(encoder.encode("Sorry, an error occurred. Please try again later."));
+          controller.close();
         }
       },
     });
